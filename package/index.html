@@ -311,6 +311,10 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
 dialog{border:1px solid var(--line);border-radius:16px;background:var(--panel);color:var(--ink);padding:0;
        width:min(560px,calc(100vw - 32px));box-shadow:0 24px 70px -20px rgba(0,0,0,.45)}
 dialog::backdrop{background:rgba(10,14,20,.5);backdrop-filter:blur(2px)}
+#confirmDlg{width:min(420px,calc(100vw - 32px))}
+.cbody{margin:0;font-size:13.5px;line-height:1.85}
+.btn.solid-danger{background:var(--crit);border-color:var(--crit);color:var(--panel)}
+.btn.solid-danger:hover{filter:brightness(.92)}
 dialog .dh{padding:16px 20px 12px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
 dialog .dh h3{margin:0;font-family:var(--font-display);font-size:17px;font-weight:700}
 dialog .db{padding:16px 20px;display:flex;flex-direction:column;gap:14px;max-height:min(66dvh,560px);overflow:auto}
@@ -427,6 +431,7 @@ dialog .df .sp{flex:1}
 </div>
 
 <dialog id="dlg"></dialog>
+<dialog id="confirmDlg"></dialog>
 
 <script>
 (function(){
@@ -1104,7 +1109,21 @@ function render(){
 var SPLIT_RE = new RegExp("[、,，/|]+");
 
 /* ============ 对话框 ============ */
-var dlg = $("#dlg");
+var dlg = $("#dlg"), cdlg = $("#confirmDlg");
+
+/* 沙箱 iframe 里 window.confirm() 会被直接忽略并返回 false，
+   所以一律用 <dialog> 自己弹，别再用原生 confirm。 */
+function askConfirm(opt, onYes){
+  cdlg.innerHTML = '<div class="dh"><h3>'+esc(opt.title||"确认")+'</h3></div>'
+    + '<div class="db"><p class="cbody">'+(opt.body||"")+'</p></div>'
+    + '<div class="df"><span class="sp"></span>'
+    + '<button class="btn ghost" type="button" data-no>取消</button>'
+    + '<button class="btn solid-danger" type="button" data-yes>'+esc(opt.yes||"删除")+'</button></div>';
+  cdlg.querySelector("[data-no]").addEventListener("click", function(){ cdlg.close(); });
+  cdlg.querySelector("[data-yes]").addEventListener("click", function(){ cdlg.close(); onYes(); });
+  cdlg.showModal();
+  var y = cdlg.querySelector("[data-yes]"); if(y) y.focus();
+}
 function openDialog(opt){
   dlg.innerHTML = '<form id="dlgForm" novalidate>'
     + '<div class="dh"><h3>'+opt.title+'</h3></div>'
@@ -1143,13 +1162,19 @@ function openUserDialog(id){
     onReady: function(d){
       var del = d.querySelector("[data-del]");
       if(del) del.addEventListener("click", function(){
-        if(!confirm("删除用户「"+u.name+"」？其板块与事项将一并删除。")) return;
-        state.users = state.users.filter(function(x){ return x.id!==u.id; });
-        state.boards = state.boards.filter(function(b){ return b.userId!==u.id; });
-        state.tasks = state.tasks.filter(function(t){ return t.userId!==u.id; });
-        if(state.userId===u.id){ state.userId = state.users.length?state.users[0].id:null; state.boardId="all"; }
-        saveCfg("users"); saveCfg("boards"); saveCfg("tasks"); syncLogSubs(); persistPref();
-        d.close();
+        var nb = state.boards.filter(function(b){ return b.userId===u.id; }).length;
+        var nt = state.tasks.filter(function(t){ return t.userId===u.id; }).length;
+        askConfirm({
+          title:"删除用户",
+          body:"确定删除「"+esc(u.name)+"」？<br><span class=\"hint\">其 "+nb+" 个板块、"+nt+" 条事项将一并删除。</span>"
+        }, function(){
+          state.users = state.users.filter(function(x){ return x.id!==u.id; });
+          state.boards = state.boards.filter(function(b){ return b.userId!==u.id; });
+          state.tasks = state.tasks.filter(function(t){ return t.userId!==u.id; });
+          if(state.userId===u.id){ state.userId = state.users.length?state.users[0].id:null; state.boardId="all"; }
+          saveCfg("users"); saveCfg("boards"); saveCfg("tasks"); syncLogSubs(); persistPref();
+          d.close();
+        });
       });
     },
     onSubmit: function(d){
@@ -1183,11 +1208,15 @@ function openBoardDialog(id){
       var del = d.querySelector("[data-del]");
       if(del) del.addEventListener("click", function(){
         var n = state.tasks.filter(function(t){ return t.boardId===b.id; }).length;
-        if(!confirm("删除板块「"+b.name+"」？"+(n?"其中 "+n+" 个事项也会被删除。":""))) return;
-        state.boards = state.boards.filter(function(x){ return x.id!==b.id; });
-        state.tasks = state.tasks.filter(function(t){ return t.boardId!==b.id; });
-        if(state.boardId===b.id) state.boardId="all";
-        saveCfg("boards"); saveCfg("tasks"); persistPref(); d.close();
+        askConfirm({
+          title:"删除板块",
+          body:"确定删除「"+esc(b.name)+"」？"+(n?"<br><span class=\"hint\">其中 "+n+" 个事项也会一并删除。</span>":"")
+        }, function(){
+          state.boards = state.boards.filter(function(x){ return x.id!==b.id; });
+          state.tasks = state.tasks.filter(function(t){ return t.boardId!==b.id; });
+          if(state.boardId===b.id) state.boardId="all";
+          saveCfg("boards"); saveCfg("tasks"); persistPref(); d.close();
+        });
       });
     },
     onSubmit: function(d){
@@ -1341,9 +1370,13 @@ function openTaskDialog(id, presetBoard){
       drawChips(); drawStages(); sync();
       var del = d.querySelector("[data-del]");
       if(del) del.addEventListener("click", function(){
-        if(!confirm("删除事项「"+t.title+"」？历史打卡记录会保留但不再显示。")) return;
-        state.tasks = state.tasks.filter(function(x){ return x.id!==t.id; });
-        saveCfg("tasks"); d.close();
+        askConfirm({
+          title:"删除事项",
+          body:"确定删除「"+esc(t.title)+"」？<br><span class=\"hint\">历史打卡记录会保留但不再显示。</span>"
+        }, function(){
+          state.tasks = state.tasks.filter(function(x){ return x.id!==t.id; });
+          saveCfg("tasks"); d.close();
+        });
       });
     },
     onSubmit: function(d){
@@ -1420,9 +1453,13 @@ document.addEventListener("click", function(ev){
   }
   if(act==="del-task"){
     var dt = taskOf(id); if(!dt) return;
-    if(!confirm("删除事项「"+dt.title+"」？\n历史打卡记录会保留，但这条事项不再出现。")) return;
-    state.tasks = state.tasks.filter(function(x){ return x.id!==id; });
-    saveCfg("tasks"); toast("已删除「"+dt.title+"」");
+    askConfirm({
+      title:"删除事项",
+      body:"确定删除「"+esc(dt.title)+"」？<br><span class=\"hint\">历史打卡记录会保留，但这条事项不再出现。</span>"
+    }, function(){
+      state.tasks = state.tasks.filter(function(x){ return x.id!==id; });
+      saveCfg("tasks"); toast("已删除「"+dt.title+"」");
+    });
     return;
   }
   if(act==="note"){

@@ -201,6 +201,12 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
 .cards.grid.pad{padding:12px}
 .columns.pad{padding:12px}
 
+.badge{flex:none;font-size:10px;line-height:1.7;padding:1px 7px;border-radius:999px;white-space:nowrap}
+.badge.od{background:var(--crit-soft);color:var(--crit);font-weight:700}
+.tcell{display:flex;align-items:center;gap:7px;min-width:0}
+.tcell .ttl{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.seclab.od{color:var(--crit)}
+
 /* 所有事项：一行一条的表格 */
 .rows{display:flex;flex-direction:column}
 .rowhead,.row{display:grid;grid-template-columns:20px minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:7px 14px}
@@ -822,6 +828,7 @@ function taskCard(task, pk, opts){
   h += '</span></div>';
 
   var meta = [];
+  if(opts.overdue) meta.push('<span class="badge od">待补事项</span>');
   if(opts.dueMonth) meta.push(dueChip(task, pk));
   if(opts.showRepeat) meta.push('<span class="tagchip">'+esc(repeatLabel(task))+'</span>');
   if(opts.boardTag){ var bd=boardOf(task.boardId); if(bd) meta.push('<span class="tagchip">'+esc((bd.icon||"")+" "+bd.name)+'</span>'); }
@@ -888,9 +895,9 @@ function bucketCards(bk){
   }
   if(bk.overdue.length){
     var shown = bk.overdue.slice(0,5);
-    h += '<div class="seclab">待补</div>';
+    h += '<div class="seclab od">待补事项</div>';
     h += shown.map(function(it){
-      return taskCard(it.task, it.pk, {ns:"od-", compact:true, dayLabel:(it.pk.length>7), dueMonth:(it.pk.length===7)});
+      return taskCard(it.task, it.pk, {ns:"od-", compact:true, overdue:true, dayLabel:(it.pk.length>7), dueMonth:(it.pk.length===7)});
     }).join("");
     if(bk.overdue.length>shown.length) h += '<div class="more">还有 '+(bk.overdue.length-shown.length)+' 条更早的</div>';
   }
@@ -935,8 +942,10 @@ function taskRow(task, pk, opts){
   var h = '<div class="row'+(done?" done":"")+(opts.overdue?" od":"")+'">';
   h += '<button class="check" type="button" data-act="toggle" data-id="'+esc(task.id)+'" data-pk="'+esc(pk)+'"'
      + ' aria-pressed="'+done+'" aria-label="'+(done?"取消完成":"标记完成")+'：'+esc(task.title)+'">'+CHECK_SVG+'</button>';
-  h += '<button class="ttl" type="button" data-act="edit-task" data-id="'+esc(task.id)+'" title="点击重命名 / 编辑">'
-     + esc(task.title)+'</button>';
+  h += '<span class="tcell">'
+     + (opts.overdue ? '<span class="badge od">待补事项</span>' : '')
+     + '<button class="ttl" type="button" data-act="edit-task" data-id="'+esc(task.id)+'" title="点击重命名 / 编辑">'
+     + esc(task.title)+'</button></span>';
   h += '<span class="rowmeta">'
      + '<span class="cell">'+(bd?esc((bd.icon||"")+" "+bd.name):"")+'</span>'
      + '<span class="cell mono">'+(opts.overdue ? cnDate(pk)+' 周'+WD[fromKey(pk).getDay()] : esc(repeatLabel(task)))+'</span>'
@@ -996,7 +1005,7 @@ function renderContent(){
     chips.push('<span class="rchip '+(it.left<=1?"crit":"warn")+'">'+esc(it.task.title)+' · '
       + (it.left<0 ? "逾期"+(-it.left)+"天" : (it.left===0 ? "今天截止" : it.left+"天后"))+'</span>');
   });
-  if(overdue.length) chips.push('<span class="rchip crit">待补 <b>'+overdue.length+'</b></span>');
+  if(overdue.length) chips.push('<span class="rchip crit">待补事项 <b>'+overdue.length+'</b></span>');
   if(!chips.length) chips.push('<span class="rchip ok">今天的事都做完了</span>');
 
   var wkStart = mondayOf(key), wkDone=0, wkTotal=0, cells="";
@@ -1026,7 +1035,7 @@ function renderContent(){
     var body;
     if(fold){
       body = '<div class="foldnote">已缩起 · '+allDone+' / '+allItems.length+' 完成'
-           + (overdue.length ? ' · 另有 '+overdue.length+' 条待补' : '')+'</div>';
+           + (overdue.length ? ' · 另有 '+overdue.length+' 条待补事项' : '')+'</div>';
     } else if(!allItems.length && !overdue.length){
       body = '<div class="empty">'+cnDate(key)+'没有任何事项。用上面的「＋ 添加事项」排一件。</div>';
     } else {
@@ -1036,7 +1045,7 @@ function renderContent(){
             return taskRow(it.task, it.pk, {dueMonth:(it.pk.length===7)});
           }).join("")
         + (overdue.length
-            ? '<div class="rowsep">待补 · 近 14 天未完成</div>'
+            ? '<div class="rowsep">待补事项 · 近 14 天未完成</div>'
               + odShown.map(function(it){
                   return taskRow(it.task, it.pk, {overdue:true, dueMonth:(it.pk.length===7)});
                 }).join("")

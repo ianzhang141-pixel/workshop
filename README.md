@@ -2,7 +2,9 @@
 
 一个多用户的每日 / 每周 / 每月待办工作台。每个用户拥有一个 **综合总览** 和任意多个 **细分板块**，事项可以是简单打勾，也可以带一条多阶段流程（例如稿件的 大纲 → 初稿 → 作图 → 审核 → 发布）。
 
-页面是单文件 `index.html`，作为 Claude Artifact 发布运行。
+页面是单文件 `index.html`，作为 Claude Artifact 发布运行：<https://claude.ai/artifact/LkGMtTRqeuUBxwcNBmMPM7>
+
+接手维护请读 [交接文档](docs/交接文档.md)；变更记录见 [工作日志](docs/工作日志.md)。
 
 ## 功能
 
@@ -16,10 +18,14 @@
   | 每周·指定星期 | 只在选中的星期出现 | `YYYY-MM-DD` |
   | 每周内完成 | 一周一条，本周内完成即可 | 该周周一的日期 |
   | 每月·截止日 | 每月一条，可选 1–28 号前或月底前 | `YYYY-MM` |
-  | 指定日期 | 一次性事项（快捷添加框默认用它） | `YYYY-MM-DD` |
+  | 指定某一天 | 一次性事项（快捷添加框默认用它） | `YYYY-MM-DD` |
+  | 自定义多个日期 | 挑几个不连续的日子 | `YYYY-MM-DD` |
+
+  前四种还可以限定**持续时间**：长期有效 / 指定起止日期 / 重复 N 次后自动结束。
 - **进度阶段**：给事项配置阶段后，每一期会显示一条进度条，点阶段即标注当前状态；点当前阶段退回上一步。内置「稿件流程」「复盘流程」两个预设，也可自定义。
 - **提醒**：顶部提醒条汇总当日未完成数量、5 天内到期的月度事项、逾期项；月度事项显示倒计时，逾期标红。
 - **备注**：每一期事项可写一条当期备注（例如当天的稿件主题）。
+- **完成即沉底**：打勾后事项自动移到列表最下方，整组做完的板块也会整体下沉。
 - **统计**：当日进度、本周进度、近 14 天待补、连续全勤天数。
 - **导出备份**：把全部数据导出为 JSON。
 
@@ -31,6 +37,7 @@
 config/users   { list: [ {id, name, emoji, color, order} ] }
 config/boards  { list: [ {id, userId, name, icon, order} ] }
 config/tasks   { list: [ {id, userId, boardId, title, repeat, stages, note, order, start} ] }
+               repeat = {kind, days?, day?, date?, list?, from?, to?, times?}
 logs/<userId>_<YYYY-MM>
                { userId, month, entries: { "<taskId>__<周期键>": {d, s, n, t} } }
 ```
@@ -40,3 +47,5 @@ logs/<userId>_<YYYY-MM>
 ## 开发
 
 `index.html` 按 Artifact 的页面约定编写（不含 `<html>` / `<head>` / `<body>` 外壳，由发布时注入）。修改后重新发布到同一 URL 即可，已打开的页面会自动更新。
+
+直接用浏览器打开 `index.html` 也能跑，此时走 localStorage 离线模式并自动灌入示例数据，方便本地改样式。改动数据库相关代码时请连数据库路径一起验证——快照对象是冻结的，细节见交接文档「必须知道的五个坑」。

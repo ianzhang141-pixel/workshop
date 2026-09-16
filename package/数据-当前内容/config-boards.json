@@ -1,0 +1,61 @@
+{
+ "list": [
+  {
+   "icon": "📚",
+   "id": "b_xuexi",
+   "name": "学习",
+   "order": 0,
+   "userId": "u_shuaige"
+  },
+  {
+   "icon": "📈",
+   "id": "b_jiaoyi",
+   "name": "交易",
+   "order": 1,
+   "userId": "u_shuaige"
+  },
+  {
+   "icon": "🎬",
+   "id": "b_zimeiti",
+   "name": "自媒体",
+   "order": 2,
+   "userId": "u_shuaige"
+  },
+  {
+   "icon": "🧾",
+   "id": "b_shuiwu",
+   "name": "个体户税务",
+   "order": 3,
+   "userId": "u_shuaige"
+  },
+  {
+   "icon": "✍️",
+   "id": "b_meimei",
+   "name": "美美",
+   "order": 0,
+   "userId": "u_xiaozhu"
+  },
+  {
+   "icon": "🍰",
+   "id": "b_tiandian",
+   "name": "甜点",
+   "order": 1,
+   "userId": "u_xiaozhu"
+  },
+  {
+   "icon": "🌿",
+   "id": "b_richang",
+   "name": "日常",
+   "order": 2,
+   "userId": "u_xiaozhu"
+  },
+  {
+   "icon": "✅",
+   "id": "b_c4m5eslwz",
+   "name": "日常",
+   "order": 4,
+   "userId": "u_shuaige"
+  }
+ ],
+ "updatedAt": 0
+}

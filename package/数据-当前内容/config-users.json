@@ -1,0 +1,19 @@
+{
+ "list": [
+  {
+   "color": "#8593A8",
+   "emoji": "🕶",
+   "id": "u_shuaige",
+   "name": "噜噜大王",
+   "order": 0
+  },
+  {
+   "color": "#C09A9A",
+   "emoji": "🐷",
+   "id": "u_xiaozhu",
+   "name": "噜噜公主",
+   "order": 1
+  }
+ ],
+ "updatedAt": 0
+}

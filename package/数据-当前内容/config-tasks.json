@@ -1,0 +1,176 @@
+{
+ "list": [
+  {
+   "boardId": "b_jiaoyi",
+   "id": "t_jy1",
+   "note": "当天成交、仓位与情绪记录",
+   "order": 0,
+   "repeat": {
+    "kind": "daily"
+   },
+   "stages": [
+    "记录",
+    "分析",
+    "结论"
+   ],
+   "start": "2026-09-16",
+   "title": "交易复盘",
+   "userId": "u_shuaige"
+  },
+  {
+   "boardId": "b_zimeiti",
+   "id": "t_zm1",
+   "note": "",
+   "order": 1,
+   "repeat": {
+    "kind": "daily"
+   },
+   "stages": [],
+   "start": "2026-09-16",
+   "title": "检查发布、做阅读",
+   "userId": "u_shuaige"
+  },
+  {
+   "boardId": "b_zimeiti",
+   "id": "t_zm2",
+   "note": "",
+   "order": 2,
+   "repeat": {
+    "kind": "daily"
+   },
+   "stages": [],
+   "start": "2026-09-16",
+   "title": "做成交",
+   "userId": "u_shuaige"
+  },
+  {
+   "boardId": "b_shuiwu",
+   "id": "t_sw1",
+   "note": "每月 15 号前完成申报",
+   "order": 3,
+   "repeat": {
+    "day": 15,
+    "kind": "monthly"
+   },
+   "stages": [],
+   "start": "2026-09-16",
+   "title": "申报个人所得税（劳务报酬）",
+   "userId": "u_shuaige"
+  },
+  {
+   "boardId": "b_shuiwu",
+   "id": "t_sw2",
+   "note": "每月月底前付款",
+   "order": 4,
+   "repeat": {
+    "day": "end",
+    "kind": "monthly"
+   },
+   "stages": [],
+   "start": "2026-09-16",
+   "title": "支付劳务报酬",
+   "userId": "u_shuaige"
+  },
+  {
+   "boardId": "b_shuiwu",
+   "id": "t_sw3",
+   "note": "每月月底前完成开票申报",
+   "order": 5,
+   "repeat": {
+    "day": "end",
+    "kind": "monthly"
+   },
+   "stages": [],
+   "start": "2026-09-16",
+   "title": "申报开票",
+   "userId": "u_shuaige"
+  },
+  {
+   "boardId": "b_meimei",
+   "id": "t_mm1",
+   "note": "在下方备注里写今天的稿件主题",
+   "order": 6,
+   "repeat": {
+    "date": "2026-09-17",
+    "kind": "once"
+   },
+   "stages": [
+    "大纲",
+    "初稿",
+    "作图",
+    "审核",
+    "发布"
+   ],
+   "start": "2026-09-16",
+   "title": "可丽金眼霜",
+   "userId": "u_xiaozhu"
+  },
+  {
+   "boardId": "b_tiandian",
+   "id": "t_td1",
+   "note": "",
+   "order": 7,
+   "repeat": {
+    "date": "2026-09-17",
+    "kind": "once"
+   },
+   "stages": [
+    "备料",
+    "制作",
+    "拍照"
+   ],
+   "start": "2026-09-16",
+   "title": "今日甜点出品",
+   "userId": "u_xiaozhu"
+  },
+  {
+   "boardId": "b_meimei",
+   "id": "t_ovhyxphkp",
+   "note": "",
+   "order": 8,
+   "repeat": {
+    "date": "2026-09-17",
+    "kind": "once"
+   },
+   "stages": [
+    "大纲",
+    "初稿",
+    "作图",
+    "审核",
+    "发布"
+   ],
+   "start": "2026-09-17",
+   "title": "Olay修改",
+   "userId": "u_xiaozhu"
+  },
+  {
+   "boardId": "b_c4m5eslwz",
+   "id": "t_2wwr5tckx",
+   "note": "",
+   "order": 9,
+   "repeat": {
+    "date": "2026-09-17",
+    "kind": "once"
+   },
+   "stages": [],
+   "start": "2026-09-17",
+   "title": "递签",
+   "userId": "u_shuaige"
+  },
+  {
+   "boardId": "b_c4m5eslwz",
+   "id": "t_qfc1y1sqh",
+   "note": "",
+   "order": 10,
+   "repeat": {
+    "date": "2026-09-16",
+    "kind": "once"
+   },
+   "stages": [],
+   "start": "2026-09-16",
+   "title": "递签",
+   "userId": "u_shuaige"
+  }
+ ],
+ "updatedAt": 0
+}

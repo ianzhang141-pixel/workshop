@@ -207,6 +207,23 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
 .tcell .ttl{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .seclab.od{color:var(--crit)}
 
+/* 今日日程 */
+.agenda{padding:10px 14px 12px;display:flex;flex-direction:column}
+.agrow{display:grid;grid-template-columns:62px minmax(0,1fr);gap:12px;align-items:stretch;padding:3px 0}
+.agtime{display:flex;flex-direction:column;align-items:flex-end;padding-top:9px}
+.agtime b{font-family:var(--font-mono);font-size:13px;font-weight:600;line-height:1.3;font-variant-numeric:tabular-nums}
+.agtime i{font-family:var(--font-mono);font-size:10.5px;color:var(--ink-3);font-style:normal;line-height:1.35}
+.agbody{display:flex;align-items:center;gap:9px;flex-wrap:wrap;border-left:3px solid var(--brand);
+        background:var(--panel-2);border-radius:0 10px 10px 0;padding:8px 12px;min-height:42px}
+.agbody.done{border-left-color:var(--line-2);opacity:.6}
+.agbody.done:hover{opacity:1}
+.agbody.done .ttl{color:var(--ink-3);text-decoration:line-through;text-decoration-color:var(--line-2)}
+.agbody.clash{border-left-color:var(--crit)}
+.agbody .ttl{flex:1;min-width:0;font-size:13.5px}
+.agnone{padding:9px 14px;font-size:12px;color:var(--ink-3)}
+.agnone.first{padding:16px 14px;text-align:center}
+.agnone + .agnone,.agenda + .agnone{border-top:1px dashed var(--line)}
+
 /* 所有事项：一行一条的表格 */
 .rows{display:flex;flex-direction:column}
 .rowhead,.row{display:grid;grid-template-columns:20px minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:7px 14px}
@@ -215,7 +232,10 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
 .rowhead .ra{text-align:center}
 .row{border-bottom:1px solid var(--line)}
 .row:hover{background:var(--panel-2)}
-.rowmeta{display:grid;grid-template-columns:118px 132px 148px;gap:10px;align-items:center}
+.rowmeta{display:grid;grid-template-columns:96px 112px 118px 142px;gap:10px;align-items:center}
+.rowmeta .cell.tm{font-size:11.5px;color:var(--ink-2);font-weight:600}
+.timechip{font-family:var(--font-mono);font-size:10.5px;padding:1px 7px;border-radius:999px;font-weight:600;
+          background:var(--brand-soft);color:var(--brand-ink);white-space:nowrap}
 .rowmeta .cell{font-size:12px;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rowmeta .cell.st{display:flex;align-items:center;gap:6px;white-space:nowrap}
 .rowmeta .cell.mono{font-family:var(--font-mono);font-size:11px;color:var(--ink-3)}
@@ -330,12 +350,15 @@ dialog .df .sp{flex:1}
 .field > .lb{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.13em;color:var(--ink-3);text-transform:uppercase}
 .field input[type=text],.field input[type=date],.field select,.field textarea{
   border:1px solid var(--line);background:var(--panel-2);border-radius:9px;padding:9px 11px;width:100%}
+.field input[type=time]{border:1px solid var(--line);background:var(--panel-2);border-radius:9px;
+  padding:9px 11px;width:auto;flex:0 0 auto;min-width:118px;font-family:var(--font-mono)}
 .field input:focus,.field select:focus,.field textarea:focus{background:var(--panel);border-color:var(--brand);outline:none}
 .field textarea{resize:vertical;min-height:62px}
 .hint{font-size:11.5px;color:var(--ink-3)}
 .sublb{font-size:12px;color:var(--ink-2);white-space:nowrap}
 .field .inline{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .field .inline input[type=date],.field .inline input[type=number]{width:auto;flex:0 1 auto;min-width:130px}
+.field .inline input[type=time]{min-width:118px}
 .field .inline input[type=number]{min-width:84px}
 .stagelist{display:flex;flex-direction:column;gap:6px}
 .stagerow{display:flex;align-items:center;gap:6px}
@@ -466,6 +489,17 @@ function lastDayOf(monthKey){ var p=monthKey.split("-"); return new Date(+p[0], 
 function cnDate(k){ var d=fromKey(k); return (d.getMonth()+1)+"月"+d.getDate()+"日"; }
 function uid(p){ return p+Math.random().toString(36).slice(2,7)+Date.now().toString(36).slice(-4); }
 function clone(o){ return JSON.parse(JSON.stringify(o)); }
+/* 事项的时间段：task.time = {s:"09:00", e:"10:30"}，e 可空 */
+function timeOf(task){ var x = task && task.time; return (x && x.s) ? x : null; }
+function fmtTime(task){ var x=timeOf(task); return x ? (x.s + (x.e ? "–"+x.e : " 起")) : ""; }
+function minOf(hhmm){ var a=String(hhmm||"").split(":"); return (Number(a[0])||0)*60 + (Number(a[1])||0); }
+function byTime(a,b){
+  var ta=timeOf(a.task), tb=timeOf(b.task);
+  if(ta && tb) return minOf(ta.s) - minOf(tb.s);
+  if(ta) return -1;
+  if(tb) return 1;
+  return 0;
+}
 
 /* ============ 初始示例（仅离线模式使用；联网数据由工作台自身保存） ============ */
 var SEED_DAY = "2026-09-16";
@@ -829,6 +863,7 @@ function taskCard(task, pk, opts){
 
   var meta = [];
   if(opts.overdue) meta.push('<span class="badge od">待补事项</span>');
+  if(timeOf(task)) meta.push('<span class="timechip">'+esc(fmtTime(task))+'</span>');
   if(opts.dueMonth) meta.push(dueChip(task, pk));
   if(opts.showRepeat) meta.push('<span class="tagchip">'+esc(repeatLabel(task))+'</span>');
   if(opts.boardTag){ var bd=boardOf(task.boardId); if(bd) meta.push('<span class="tagchip">'+esc((bd.icon||"")+" "+bd.name)+'</span>'); }
@@ -873,7 +908,8 @@ function bucketsFor(tasks, key){
   var wk = mondayOf(key), mk = key.slice(0,7);
   return {
     day:   sinkDone(tasks.filter(function(t){ return occursOn(t,key); })
-                         .map(function(t){ return {task:t, pk:key}; })),
+                         .map(function(t){ return {task:t, pk:key}; })
+                         .sort(byTime)),
     week:  sinkDone(tasks.filter(function(t){ return (t.repeat||{}).kind==="weekany" && startedBy(t,key) && inWindow(t,key); })
                          .map(function(t){ return {task:t, pk:wk}; })),
     month: sinkDone(tasks.filter(function(t){ return (t.repeat||{}).kind==="monthly" && startedBy(t,key) && inWindow(t,mk); })
@@ -916,7 +952,7 @@ function doneCount(items){
 /* ---- 表格行（所有事项用，一行一条，可展开） ---- */
 function rowHead(){
   return '<div class="rowhead"><span></span><span>事项</span>'
-    + '<span class="rowmeta"><span>板块</span><span>周期</span><span>状态</span></span>'
+    + '<span class="rowmeta"><span>时间</span><span>板块</span><span>周期</span><span>状态</span></span>'
     + '<span class="ra">操作</span></div>';
 }
 function taskRow(task, pk, opts){
@@ -947,6 +983,7 @@ function taskRow(task, pk, opts){
      + '<button class="ttl" type="button" data-act="edit-task" data-id="'+esc(task.id)+'" title="点击重命名 / 编辑">'
      + esc(task.title)+'</button></span>';
   h += '<span class="rowmeta">'
+     + '<span class="cell tm mono">'+(timeOf(task)?esc(fmtTime(task)):"—")+'</span>'
      + '<span class="cell">'+(bd?esc((bd.icon||"")+" "+bd.name):"")+'</span>'
      + '<span class="cell mono">'+(opts.overdue ? cnDate(pk)+' 周'+WD[fromKey(pk).getDay()] : esc(repeatLabel(task)))+'</span>'
      + '<span class="cell st">'+status+'</span></span>';
@@ -975,6 +1012,49 @@ function taskRow(task, pk, opts){
     h += '</div>';
   }
   return h;
+}
+
+/* 时间重叠检测：返回重叠项在 timed 数组里的下标集合 */
+function clashIndexes(timed){
+  var bad = {};
+  for(var i=0;i<timed.length;i++){
+    for(var j=i+1;j<timed.length;j++){
+      var a=timeOf(timed[i].task), b=timeOf(timed[j].task);
+      if(!a.e || !b.e) continue;
+      if(minOf(a.s) < minOf(b.e) && minOf(b.s) < minOf(a.e)){ bad[i]=1; bad[j]=1; }
+    }
+  }
+  return bad;
+}
+function agendaPanel(items, key){
+  var timed = items.filter(function(it){ return timeOf(it.task); }).sort(byTime);
+  var untimed = items.filter(function(it){ return !timeOf(it.task); });
+  var clash = clashIndexes(timed);
+  var body = "";
+  if(timed.length){
+    body += '<div class="agenda">' + timed.map(function(it,i){
+      var t = it.task, tm = timeOf(t), done = isDone(t, it.pk), bd = boardOf(t.boardId);
+      var st = "";
+      if(t.stages && t.stages.length){
+        var cur = Math.min(stageOf(t, it.pk), t.stages.length-1);
+        st = '<span class="meta">'+(cur>=0?esc(t.stages[cur]):"未开始")+'</span>';
+      }
+      return '<div class="agrow">'
+        + '<span class="agtime"><b>'+esc(tm.s)+'</b>'+(tm.e?'<i>'+esc(tm.e)+'</i>':'')+'</span>'
+        + '<span class="agbody'+(done?" done":"")+(clash[i]?" clash":"")+'">'
+        + '<button class="check" type="button" data-act="toggle" data-id="'+esc(t.id)+'" data-pk="'+esc(it.pk)+'"'
+        + ' aria-pressed="'+done+'" aria-label="'+(done?"取消完成":"标记完成")+'：'+esc(t.title)+'">'+CHECK_SVG+'</button>'
+        + '<button class="ttl" type="button" data-act="edit-task" data-id="'+esc(t.id)+'" title="点击重命名 / 编辑">'
+        + esc(t.title)+'</button>'
+        + (clash[i]?'<span class="badge od">时间重叠</span>':'')
+        + (bd?'<span class="tagchip">'+esc((bd.icon||"")+" "+bd.name)+'</span>':'')
+        + st + '</span></div>';
+    }).join("") + '</div>';
+  } else {
+    body += '<div class="agnone first">这天还没有排时间的事项。编辑任意事项，填上「从几点到几点」就会出现在这里。</div>';
+  }
+  if(untimed.length) body += '<div class="agnone">未排时间 · '+untimed.length+' 项（见下方「所有事项」）</div>';
+  return panel("今日日程", cnDate(key)+" 周"+WD[fromKey(key).getDay()], body);
 }
 
 function renderContent(){
@@ -1023,6 +1103,10 @@ function renderContent(){
     + '<span class="sp"></span>'
     + '<span class="tally mono">本周 <b>'+wkDone+'</b>/'+wkTotal+' · 连续 <b>'+streakOf(tasks)+'</b> 天</span>'
     + '</div>';
+
+  /* — 今日日程：按时间排开 — */
+  var agendaItems = sinkDone(bkAll.day.concat(bkAll.week, bkAll.month));
+  if(agendaItems.length) out += agendaPanel(agendaItems, key);
 
   /* — 总览顶部：所有事项，一行一条的表格，待补并入其中 — */
   if(!board){
@@ -1255,6 +1339,7 @@ function openTaskDialog(id, presetBoard){
   var stageList = stages.slice();
   var readStages = function(){};
   var span = r.times ? "times" : ((r.from || r.to) ? "range" : "forever");
+  var tm = (t && t.time) || {};
   var kinds = [["daily","每天"],["weekly","每周·指定星期"],["weekany","每周内完成"],
                ["monthly","每月·截止日"],["once","指定某一天"],["dates","自定义多个日期"]];
   var spans = [["forever","长期有效"],["range","指定起止日期"],["times","重复 N 次后结束"]];
@@ -1293,6 +1378,11 @@ function openTaskDialog(id, presetBoard){
       + '<div class="inline" id="w-to"><span class="sublb">结束</span><input type="date" id="f-to" value="'+esc(r.to||"")+'"></div>'
       + '<div class="inline" id="w-times"><span class="sublb">重复</span><input type="number" id="f-times" min="1" max="365" value="'+esc(r.times||10)+'"><span class="sublb">次后自动结束</span></div>'
       + '</div>'
+    + '<div class="field"><span class="lb">时间段（可选）</span>'
+      + '<div class="inline"><input type="time" id="f-tstart" value="'+esc(tm.s||"")+'">'
+      + '<span class="sublb">到</span><input type="time" id="f-tend" value="'+esc(tm.e||"")+'">'
+      + '<button class="mini" type="button" id="f-tclear">不限时间</button></div>'
+      + '<span class="hint">填了就会出现在当天的「今日日程」里，按开始时间排序；两件事时间重叠会标出来。</span></div>'
     + '<div class="field"><span class="lb">当前状态（进度阶段）</span>'
       + '<div class="opts" id="f-stagequick"><button class="mini" type="button" data-fill="draft">填入稿件流程</button>'
       + '<button class="mini" type="button" data-fill="review">填入复盘流程</button>'
@@ -1365,6 +1455,10 @@ function openTaskDialog(id, presetBoard){
           drawStages();
         }
       });
+      d.querySelector("#f-tclear").addEventListener("click", function(){
+        d.querySelector("#f-tstart").value = "";
+        d.querySelector("#f-tend").value = "";
+      });
       d.querySelector("#f-stageadd").addEventListener("click", function(){
         readStages(); stageList.push(""); drawStages();
         var all = d.querySelectorAll(".stagename");
@@ -1424,10 +1518,17 @@ function openTaskDialog(id, presetBoard){
       var stg = stageList.map(function(x){ return x.trim(); }).filter(Boolean);
       var note = d.querySelector("#f-note").value.trim();
       var bId = d.querySelector("#f-board").value;
-      if(t){ t.title=title; t.boardId=bId; t.repeat=rep; t.stages=stg; t.note=note; }
-      else {
-        state.tasks.push({id:uid("t_"), userId:state.userId, boardId:bId, title:title, repeat:rep,
-                          stages:stg, note:note, order:state.tasks.length, start:todayKey()});
+      var ts = d.querySelector("#f-tstart").value, te = d.querySelector("#f-tend").value;
+      if(ts && te && minOf(te) <= minOf(ts)){ toast("结束时间要晚于开始时间"); return false; }
+      var tval = ts ? {s:ts, e:te||""} : null;
+      if(t){
+        t.title=title; t.boardId=bId; t.repeat=rep; t.stages=stg; t.note=note;
+        if(tval) t.time = tval; else delete t.time;
+      } else {
+        var nt = {id:uid("t_"), userId:state.userId, boardId:bId, title:title, repeat:rep,
+                  stages:stg, note:note, order:state.tasks.length, start:todayKey()};
+        if(tval) nt.time = tval;
+        state.tasks.push(nt);
       }
       saveCfg("tasks");
     }

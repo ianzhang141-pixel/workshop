@@ -27,6 +27,7 @@
   前四种还可以限定**持续时间**：长期有效 / 指定起止日期 / 重复 N 次后自动结束。
 - **当前状态**：给事项配置状态后，每一期会显示一条进度，点状态即标注；点当前状态退回上一步。状态本身可以**增加、改名、删除、调顺序**——「大纲 / 初稿 / 作图 / 审核 / 发布」只是一个可一键填入的预设，不是固定的。
 - **提醒**：顶部提醒条汇总当日未完成数量、5 天内到期的月度事项、逾期项；月度事项显示倒计时，逾期标红。
+- **日程（从几点到几点）**：事项可设时间段，当天按开始时间排序，总览顶部多一块「今日日程」时间轴；两件事时间重叠会标出「时间重叠」。不填时间的事项照常在「所有事项」里，不进时间轴。
 - **备注**：每一期事项可写一条当期备注（例如当天的稿件主题）。
 - **完成即沉底**：打勾后事项自动移到列表最下方，整组做完的板块也会整体下沉。
 - **统计**：当日进度、本周进度、近 14 天待补、连续全勤天数。
@@ -42,7 +43,8 @@
 ```
 config/users   { list: [ {id, name, emoji, color, order} ] }
 config/boards  { list: [ {id, userId, name, icon, order} ] }
-config/tasks   { list: [ {id, userId, boardId, title, repeat, stages, note, order, start} ] }
+config/tasks   { list: [ {id, userId, boardId, title, repeat, stages, note, order, start, time?} ] }
+               time = {s:"09:00", e:"10:30"}   // 可选，e 可为空表示「某点起」
                repeat = {kind, days?, day?, date?, list?, from?, to?, times?}
 logs/<userId>_<YYYY-MM>
                { userId, month, entries: { "<taskId>__<周期键>": {d, s, n, t} } }
